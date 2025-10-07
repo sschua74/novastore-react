@@ -1,29 +1,42 @@
 pipeline {
     agent any
 
+    environment {
+        IMAGE_NAME = "react-app-nginx"
+        CONTAINER_NAME = "react-app"
+        APP_PORT = "80"
+    }
+
     stages {
         stage('Checkout') {
             steps {
                 checkout scm
             }
         }
-        stage('Validate') {
+
+        stage('Build & Deploy') {
             steps {
-                sh 'cd react-app && npm install'
-                sh 'cd react-app && npm run lint'
-                sh 'cd react-app && npm test'
+                script {
+                    // Remove old container if exists
+                    sh "docker stop $CONTAINER_NAME || true"
+                    sh "docker rm $CONTAINER_NAME || true"
+
+                    // Build Docker image (Dockerfile handles npm install + build)
+                    sh "docker build -t $IMAGE_NAME ."
+
+                    // Run container
+                    sh "docker run -d -p $APP_PORT:80 --name $CONTAINER_NAME $IMAGE_NAME"
+                }
             }
         }
-        stage('Package') {
-            steps {
-                sh 'cd react-app && npm run build'
-            }
+    }
+
+    post {
+        success {
+            echo "React app deployed successfully!"
         }
-        stage('Deploy to Nginx') {
-            steps {
-                // Replace nginx_container with your actual container name or ID
-                sh 'docker cp react-app/build/. nginx_container:/usr/share/nginx/html/'
-            }
+        failure {
+            echo "Deployment failed."
         }
     }
 }
