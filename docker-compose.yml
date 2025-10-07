@@ -21,7 +21,11 @@ services:
     restart: always
     environment:
       - DOCKER_HOST=unix:///var/run/docker.sock
-    
+    # Install docker and docker-compose when container starts
+    command: >
+      bash -c "apt-get update &&
+               apt-get install -y docker.io docker-compose &&
+               exec /usr/local/bin/jenkins.sh"
 
 volumes:
   jenkins_home:

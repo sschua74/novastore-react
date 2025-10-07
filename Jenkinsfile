@@ -4,7 +4,7 @@ pipeline {
     environment {
         IMAGE_NAME = "react-app-nginx"
         CONTAINER_NAME = "react-app"
-        APP_PORT = "80"
+        APP_PORT = "8081"
     }
 
     stages {
@@ -33,7 +33,7 @@ pipeline {
 
     post {
         success {
-            echo "React app deployed successfully!"
+            echo "React app deployed successfully! Open http://localhost:8081'"
         }
         failure {
             echo "Deployment failed."
