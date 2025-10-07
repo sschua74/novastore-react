@@ -1,5 +1,10 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'node:20'  // Node.js + npm pre-installed
+            args '-u root:root' // optional, run as root inside container
+        }
+    }
 
     environment {
         IMAGE_NAME = "react-app-nginx"
