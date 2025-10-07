@@ -1,10 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'node:20'  // Node.js + npm pre-installed
-            args '-u root:root' // optional, run as root inside container
-        }
-    }
+    agent any
 
     environment {
         IMAGE_NAME = "react-app-nginx"
@@ -19,40 +14,19 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') {
+        stage('Build & Deploy') {
             steps {
-                sh 'npm install'
-            }
-        }
+                script {
+                    // Remove old container if exists
+                    sh "docker stop $CONTAINER_NAME || true"
+                    sh "docker rm $CONTAINER_NAME || true"
 
-        stage('Build React App') {
-            steps {
-                sh 'npm run build'
-            }
-        }
+                    // Build Docker image (Dockerfile handles npm install + build)
+                    sh "docker build -t $IMAGE_NAME ."
 
-        stage('Build Docker Image') {
-            steps {
-                sh """
-                    docker build -t $IMAGE_NAME .
-                """
-            }
-        }
-
-        stage('Stop & Remove Old Container') {
-            steps {
-                sh """
-                    docker stop $CONTAINER_NAME || true
-                    docker rm $CONTAINER_NAME || true
-                """
-            }
-        }
-
-        stage('Run Container') {
-            steps {
-                sh """
-                    docker run -d -p $APP_PORT:80 --name $CONTAINER_NAME $IMAGE_NAME
-                """
+                    // Run container
+                    sh "docker run -d -p $APP_PORT:80 --name $CONTAINER_NAME $IMAGE_NAME"
+                }
             }
         }
     }
