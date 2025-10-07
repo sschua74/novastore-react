@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  react-app:
+    build: .
+    container_name: react-app
+    ports:
+      - "3000:80"
+    restart: always
+
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins-react
+    user: root
+    ports:
+      - "8080:8080"   # Jenkins UI
+      - "50000:50000" # For Jenkins agents
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock  # Let Jenkins control Docker
+    restart: always
+
+volumes:
+  jenkins_home:
